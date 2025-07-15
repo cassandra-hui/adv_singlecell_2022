@@ -8,7 +8,7 @@ pkgs <- c("SummarizedExperiment", "SingleCellExperiment",
 
 
 ## install Bioconductor --------------------------------------------------------
-biocversion <- "3.14"
+biocversion <- "3.21"
 if (!require("BiocManager", quietly = TRUE)) {
     install.packages("BiocManager")
 }

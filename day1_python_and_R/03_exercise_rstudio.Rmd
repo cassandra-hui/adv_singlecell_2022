@@ -231,7 +231,7 @@ There are five ways how you can run Python code from R:
 All five evaluate the Python code in the `__main__` Python module. In contrast to
 (1) and (2), (3) will in addition make all public (non-module) objects
 within the main Python module available within the specified R environment.
-(4) is my personal favorate, because it allows me to write native Python
+(4) is my personal favorite, because it allows me to write native Python
 code without `reticulate` specific functions. It is however only available
 in an Rmarkdown document. (5) is useful to quickly try out something without
 needing to recompile the Rmarkdown document.

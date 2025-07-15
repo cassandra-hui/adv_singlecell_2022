@@ -26,12 +26,14 @@ The simplest approach is to use established count-based analysis methods (e.g. e
 We first load the data and extract the cluster counts per sample:
 
 ```{r}
-sce <- readRDS("/data/day1_differential_analysi/DA_example1.SCE.rds")
+## Running from here after loading my own data
+
+#sce <- readRDS("/data/day1_differential_analysi/DA_example1.SCE.rds")
 # we build a SE of cluster abundances
 cluster_abundances <- unclass(table(sce$cluster_id, sce$sample_id))
 names(dimnames(cluster_abundances)) <- NULL
 cla <- SummarizedExperiment(list(counts=as.matrix(cluster_abundances)))
-cla$group <- factor(ifelse(grepl("LPS",colnames(cla)),"LPS","Control"))
+cla$group <- factor(c(rep("Control", 2), rep("LPS", 2)))
 # we calculate proportions
 assays(cla)$proportion <- 100*t(t(assay(cla))/colSums(assay(cla)))
 ```
@@ -54,7 +56,7 @@ plotProps <- function(cla, assay="proportion"){
   })
   m <- cbind(cluster_id=row.names(m), as.data.frame(m))
   ggplot(m, aes(Control, LPS, colour=cluster_id)) + geom_abline() + 
-    geom_point(show.legend=FALSE) + 
+    geom_point(show.legend=TRUE) + 
     ggtitle(assay) + scale_x_log10() + scale_y_log10()
 }
 plotProps(cla)
@@ -82,7 +84,7 @@ dds <- estimateDisp(dds)
 ```{r}
 # we plot the proportions for the top population
 d <- cbind(as.data.frame(colData(cla)), t(assays(cla)$normalized))
-ggplot(d, aes(group, Microglia, fill=group)) + geom_violin() + stat_summary()
+ggplot(d, aes(group, `3`, fill=group)) + geom_violin() + stat_summary()
 ```
 
 
@@ -94,6 +96,21 @@ designed for microbiome data, and explictly models the effect of changes on some
 subpopulations on the observed frequencies of others.
 
 ```{r}
+# First, remove the corrupted package
+#remove.packages("ANCOMBC")
+
+```
+
+```{r}
+## Run this first
+#devtools::install_github("FrederickHuangLin/ANCOMBC")
+
+```
+
+
+
+```{r}
+library(ANCOMBC)
 # we first need to build the object as ANCOMBC expects it:
 ps <- phyloseq(otu_table(assay(cla), taxa_are_rows=TRUE),
                sample_data(as.data.frame(colData(cla))))
@@ -102,13 +119,33 @@ out2 <- ancombc(ps, formula="group")
 # look at the results:
 out2 <- setNames(do.call(cbind, out2$res), names(out2$res))
 out2[order(out2$q_val),]
+
+## DOesn't line up right for my data
+
+# look at the results - properly extract and name columns:
+out2_df <- data.frame(
+  lfc = out2$res$lfc,
+  se = out2$res$se, 
+  W = out2$res$W,
+  p_val = out2$res$p_val,
+  q_val = out2$res$q_val,
+  diff_abn = out2$res$diff_abn
+)
+
+# Set row names to match cluster IDs
+#rownames(out2_df) <- rownames(out2$res$lfc)
+
+# View ordered results
+out2_df
+
+
 ```
 
 ## Comparing the two
 
 ```{r, fig.width=8, fig.height=4}
-out1$ANCOMBC.pval <- out2[row.names(out1),"p_val"]
-out1$ANCOMBC.beta <- out2[row.names(out1),"beta"]
+out1$ANCOMBC.pval <- out2[row.names(out1),"q_val"]
+out1$ANCOMBC.beta <- out2[row.names(out1),"se"]
 p1 <- ggplot(out1, aes(logFC, ANCOMBC.beta, size=-log10(ANCOMBC.pval))) + 
   geom_vline(xintercept=0) + geom_hline(yintercept=0) +
   geom_abline(slope=1, colour="grey") + geom_point() +

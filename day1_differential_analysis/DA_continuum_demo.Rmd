@@ -34,8 +34,8 @@ suppressPackageStartupMessages({
 ## Read in data, quick peek at low dim projection
 
 ```{r}
-sce <- readRDS("/data/day1_differential_analysis/sce_continuum_demo_public.rds")
-plotUMAP(sce, colour_by="condition", shape_by="sample") +
+#sce <- readRDS("/data/day1_differential_analysis/sce_continuum_demo_public.rds")
+plotUMAP(sce, colour_by="tissue", shape_by="sample_id") +
   geom_point(size=3, aes(colour=colour_by, shape=shape_by))
 ```
 
@@ -61,7 +61,7 @@ plotNhoodSizeHist(milo)
 # count by sample for each neighbourhood
 milo <- countCells(milo,
                    meta.data=data.frame(colData(milo)),
-                   sample="sample")
+                   sample="sample_id")
 milo <- calcNhoodDistance(milo, d=30)
 
 nhcnts <- nhoodCounts(milo)
@@ -72,7 +72,7 @@ head(nhcnts[,sort(colnames(nhcnts))])
 
 # collect metadata, make design matrix
 md <- as.data.frame(colData(milo))
-md <- unique(md[,c("sample","condition")])
+md <- unique(md[,c("sample_id","tissue")])
 rownames(md) <- md$sample
 
 # check
@@ -105,9 +105,9 @@ df_agg <- df %>% group_by(cluster) %>% summarise_all(mean)
 
 
 # quick look on the clustering
-plotUMAP(sce, colour_by="cluster") +
+plotUMAP(sce, colour_by="cluster_id") +
   geom_label(data=df_agg, aes(x=X1, y=X2, label=cluster))
-  
+
 
 sling <- slingshot(sce, clusterLabels = 'cluster', reducedDim = 'PCA')
 

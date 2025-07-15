@@ -379,6 +379,7 @@ the automated conversion:
 class(iris)
 ```
 ```{python, class.source="pythonchunk"}
+import pandas as pd
 pyiris = r.iris
 # type(pyiris)
 pyiris.columns

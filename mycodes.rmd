@@ -1,0 +1,86 @@
+---
+title: "mycodes"
+author: "Nevada Bioinformatics Center"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+
+
+
+```{r setup}
+library(reticulate)
+
+# Force reticulate to use homebrew's Python (where pandas is installed)
+use_python("/opt/homebrew/bin/python3.11", required = TRUE)
+
+
+py_config()
+py_available()
+```
+
+```{python check-pandas}
+try:
+    import pandas as pd
+    print("pandas is available")
+    print(f"pandas version: {pd.__version__}")
+except ImportError:
+    print("pandas is NOT available")
+```
+
+
+
+```{python}
+#import pandas as pd
+pyiris = r.iris
+type(pyiris)  # Should show <class 'pandas.core.frame.DataFrame'>
+pyiris.columns
+```
+
+
+
+# DA Cluster Analysis 
+
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(SingleCellExperiment) # core sc infrastructures
+  library(edgeR) # differential expression analysis
+  library(ANCOMBC) # differential abundance analysis with composition bias
+  library(phyloseq) # microbiome data structure, we'll need it for ANCOMBC
+  library(ggplot2) # for plotting
+  library(patchwork) # for combining plots
+  library(ComplexHeatmap) # for plotting heatmaps
+  library(Seurat)
+})
+```
+
+
+
+```{r}
+#seurat <- readRDS("/Users/cassandrahui/Documents/Projects/Carolin_Cobine/scRNAseq_2024/seurat_obj_after_umap_Caroline_less_strigent.1.23.25.RDS")
+
+seurat <- readRDS("/Users/cassandrahui/Documents/Projects/Sal_Baker/scRNAseq_2024/sham.rds")
+
+sce <- as.SingleCellExperiment(seurat)
+
+```
+
+```{r}
+sce@colData
+
+# Rename columns in colData
+colnames(sce@colData)[colnames(sce@colData) == "sample"] <- "sample_id"
+colnames(sce@colData)[colnames(sce@colData) == "CellType"] <- "cluster_id"
+
+# Verify the changes
+sce@colData
+
+```
+
+
+
+
+
+
